@@ -1,0 +1,5 @@
+deny 53/tcp
+allow 53/udp
+allow from 207.46.232.182
+allow from 192.168.0.4 to any port 22 proto tcp
+allow from 192.168.15.4/24 to any port 22
