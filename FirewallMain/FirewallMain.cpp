@@ -2,8 +2,8 @@
 #include <fstream>
 
 #include "Firewall.hpp"
+#include "Packet.hpp"
 using namespace std;
-
 
 int main(int argc, char** argv)
 {
@@ -38,9 +38,9 @@ int main(int argc, char** argv)
 
 	while (getline(file_packets, str))
 	{
-		file_output << str << " - " << (firewall.check_packet(str) ? "ALLOWED" : "DENIED") << endl;
+		Packet packet(str);
+		file_output << str << " - " << (firewall.check_packet(packet) ? "ALLOWED" : "DENIED") << endl;
 	}
-
 
 	return 0;
 }

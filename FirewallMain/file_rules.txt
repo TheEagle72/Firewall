@@ -1,3 +1,4 @@
+allow 25
 deny 53/tcp
 allow 53/udp
 allow from 207.46.232.182

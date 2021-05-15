@@ -2,11 +2,11 @@
 
 #include <iostream>
 #include <unordered_map>
-#include "Rule.hpp"
+#include "base_rule.hpp"
 
 using namespace std;
 
-uint32_t ip_to_decimal_(const string& str)
+uint32_t ip_to_decimal(const string& str)
 {
 	uint32_t result = 0;
 	auto it1 = str.begin();
@@ -26,7 +26,7 @@ uint32_t ip_to_decimal_(const string& str)
 	return result;
 }
 
-string decimal_to_ip_(uint32_t number)
+string decimal_to_ip(uint32_t number)
 {
 	string result;
 	for (int shift = 24; shift >= 0; shift -= 8)
@@ -55,7 +55,7 @@ bool is_valid_ip(const string& str)
 		it2 = find(it1, str.end(), '.');
 
 		string number = string(it1, it2);
-		if (!is_number(number) || stoul(number) > 255)
+		if (!is_number(number) || stoull(number) > 255)
 		{
 			return false;
 		}
@@ -101,9 +101,9 @@ namespace
 {
 	const unordered_map<string, uint8_t> protocol_table
 	{
+		{"icmp",1 },
 		{"tcp",6},
-		{"udp",17},
-		{"icmp",1}
+		{"udp",17}
 	};
 }
 
@@ -119,7 +119,7 @@ uint8_t parse_protocol(const string& str)
 	}
 }
 
-void parse_port(const string& str, uint8_t& port_number, uint8_t& protocol)
+void parse_port(const string& str, uint16_t& port_number, uint8_t& protocol)
 {
 	auto it = find(str.begin(), str.end(), '/');
 
@@ -128,7 +128,8 @@ void parse_port(const string& str, uint8_t& port_number, uint8_t& protocol)
 		//if no protocol is specified
 		if (is_number(str))
 		{
-			port_number = stoi(str);
+			port_number = stoull(str);
+			protocol = 0;
 		}
 	}
 	else
@@ -136,7 +137,7 @@ void parse_port(const string& str, uint8_t& port_number, uint8_t& protocol)
 		string port(str.begin(), it);
 		if (is_number(port))
 		{
-			port_number = stoul(str);
+			port_number = stoull(str);
 		}
 		string proto = string(++it, str.end());
 		protocol = parse_protocol(proto);
@@ -150,13 +151,13 @@ void parse_address(const string& str, uint32_t& address, uint8_t& mask)
 	string address_ip(str.begin(), it);
 	if (is_valid_ip(address_ip))
 	{
-		address = stoul(str);
+		address = ip_to_decimal(str);
 		if (it != str.end())
 		{
 			string address_mask(++it, str.end());
-			if (is_valid_ip(address_mask))
+			if (is_number(address_mask))
 			{
-				mask = stoul(str);
+				mask = stoull(address_mask);// todo correct conversion
 			}
 			else
 			{
@@ -170,7 +171,7 @@ void parse_address(const string& str, uint32_t& address, uint8_t& mask)
 	}
 }
 
-vector<string> parse_rule(const string& str, char separator)
+vector<string> parse_string(const string& str, char separator)
 {
 	auto it1 = str.begin();
 	auto it2 = it1;

@@ -156,13 +156,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Firewall.hpp" />
-    <ClInclude Include="Rule.hpp" />
+    <ClInclude Include="Packet.hpp" />
+    <ClInclude Include="base_rule.hpp" />
     <ClInclude Include="Parser.hpp" />
+    <ClInclude Include="compound_rule.hpp" />
+    <ClInclude Include="rule_address.hpp" />
+    <ClInclude Include="rule_creator.h" />
+    <ClInclude Include="rule_port.hpp" />
+    <ClInclude Include="rule_protocol.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Firewall.cpp" />
-    <ClCompile Include="Rule.cpp" />
+    <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="base_rule.cpp" />
     <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="compound_rule.cpp" />
+    <ClCompile Include="rule_address.cpp" />
+    <ClCompile Include="rule_creator.cpp" />
+    <ClCompile Include="rule_port.cpp" />
+    <ClCompile Include="rule_protocol.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="todo" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
