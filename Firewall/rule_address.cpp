@@ -13,16 +13,28 @@ namespace
 	};
 }
 
-rule_address::rule_address(bool permission, uint32_t address, uint8_t mask)
+rule_address::rule_address(const bool permission, const bool in_direction, uint32_t address, uint8_t mask)
 {
 	permission_ = permission;
 	address_ = address;
 	mask_ = mask;
+	in_direction_ = in_direction;
 }
+
 
 bool rule_address::check_packet(const Packet& packet, bool& permission)
 {
-	if ((packet.get_in_address() & mask_table.at(mask_)) == (address_ & mask_))
+	uint32_t address;
+	if (in_direction_)
+	{
+		address = packet.get_in_address();
+	}
+	else
+	{
+		address = packet.get_out_address();
+	}
+
+	if ((address & mask_table.at(mask_)) == (address_ & mask_table.at(mask_)))
 	{
 		permission = permission_;
 		return true;

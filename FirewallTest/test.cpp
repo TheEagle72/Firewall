@@ -1,23 +1,21 @@
 #include "pch.h"
 #include "Firewall.hpp"
 #include "Parser.hpp"
+#include "fabric_rule.hpp"
 #include <unordered_map>
 #include <limits>
 
 using namespace std;
 
-string random_ip()
+uint32_t random_ip()
 {
-	string result;
+	uint32_t result = 0;
 	for (int shift = 24; shift >= 0; shift -= 8)
 	{
-		result += to_string(rand() % 255);
-		result += '.';
+		result += (rand() % 255) << shift;
 	}
-	result.pop_back();
 	return result;
 }
-
 
 namespace
 {
@@ -27,6 +25,14 @@ namespace
 		{1,6}, // tcp
 		{2,17} // udp
 	};
+
+	const unordered_map<uint8_t, string> protocol_table_str
+	{
+		{1,"icmp"}, // icmp
+		{6,"tcp"}, // tcp
+		{17,"udp"} // udp
+	};
+
 }
 
 uint8_t random_protocol()
@@ -46,9 +52,9 @@ Packet generate_packet(const unsigned seed)
 	srand(seed);
 	str += to_string(random_protocol());
 	str += " ";
-	str += to_string(ip_to_decimal(random_ip()));
+	str += to_string(random_ip());
 	str += " ";
-	str += to_string(ip_to_decimal(random_ip()));
+	str += to_string(random_ip());
 	str += " ";
 	str += to_string(random_port());
 	str += " ";
@@ -59,71 +65,127 @@ Packet generate_packet(const unsigned seed)
 
 
 
-TEST(Parser, is_number)
+TEST(Firewall, port)
 {
-	EXPECT_EQ(is_number("128214"), true);
-	EXPECT_EQ(is_number("0"), true);
-	EXPECT_EQ(is_number("128"), true);
-	EXPECT_EQ(is_number(""), false);
-	EXPECT_EQ(is_number("abc"), false);
-	EXPECT_EQ(is_number("123abc"), false);
-	EXPECT_EQ(is_number("abc123"), false);
-	EXPECT_EQ(is_number(".&%$@"), false);
-	EXPECT_EQ(is_number("123.532"), false);
-}
-
-TEST(Parser, is_valid_ip)
-{
-	EXPECT_EQ(is_valid_ip("abc"), false);
-	EXPECT_EQ(is_valid_ip("0.0.0.0a"), false);
-	EXPECT_EQ(is_valid_ip("124214"), false);
-	EXPECT_EQ(is_valid_ip("%@#%@#"), false);
-	EXPECT_EQ(is_valid_ip("123.124.124"), false);
-	for (int i = 0; i < 5; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
-		EXPECT_EQ(is_valid_ip(random_ip()), true);
+		Firewall firewall;
+		Packet packet0 = generate_packet(i);
+		Packet packet1 = generate_packet(i + 1);
+		Packet packet2 = generate_packet(i + 2);
+		Packet packet3 = generate_packet(i + 3);
+
+		string rule;
+
+		rule += "allow ";
+		rule += to_string(packet0.get_in_port());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
+
+		rule += "deny ";
+		rule += to_string(packet1.get_in_port());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
+
+		rule += "allow ";
+		rule += to_string(packet2.get_in_port());
+		rule += "/";
+		rule += protocol_table_str.at(packet2.get_protocol());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
+
+		rule += "deny ";
+		rule += to_string(packet3.get_in_port());
+		rule += "/";
+		rule += protocol_table_str.at(packet3.get_protocol());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
+
+		EXPECT_EQ(firewall.check_packet(packet0), true);
+		EXPECT_EQ(firewall.check_packet(packet1), false);
+		EXPECT_EQ(firewall.check_packet(packet2), true);
+		EXPECT_EQ(firewall.check_packet(packet3), false);
 	}
 }
 
-TEST(Parser, ip_to_decimal)
+
+TEST(Firewall, address)
 {
-	EXPECT_EQ(ip_to_decimal("0.0.0.0"), 0);
-	EXPECT_EQ(ip_to_decimal("192.168.1.0"), 3232235776);
-	EXPECT_EQ(ip_to_decimal("214.156.43.63"), 3600558911);
-	EXPECT_EQ(ip_to_decimal("65.34.246.12"), 1092810252);
-}
+	for (int i = 0; i < 100; ++i)
+	{
+		Firewall firewall;
+		Packet packet0 = generate_packet(i);
+		Packet packet1 = generate_packet(i + 1);
+		Packet packet2 = generate_packet(i + 2);
+		Packet packet3 = generate_packet(i + 3);
+		Packet packet4 = generate_packet(i + 4);
+		Packet packet5 = generate_packet(i + 5);
 
-TEST(Parser, decimal_to_ip)
-{
-	EXPECT_EQ(decimal_to_ip(0), "0.0.0.0");
-	EXPECT_EQ(decimal_to_ip(3232235776), "192.168.1.0");
-	EXPECT_EQ(decimal_to_ip(3600558911), "214.156.43.63");
-	EXPECT_EQ(decimal_to_ip(1092810252), "65.34.246.12");
-}
+		string rule;
 
-TEST(Firewall, port)
-{
-	srand(0);
-	Firewall firewall;
-	Packet packet0 = generate_packet(0);
-	Packet packet1 = generate_packet(1);
-	Packet packet2 = generate_packet(2);
+		rule += "allow from ";
+		rule += decimal_to_ip(packet0.get_in_address());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
 
-	firewall.set_default_mode(false);
-	EXPECT_EQ(firewall.check_packet(packet0), false);
-	firewall.set_default_mode(true);
-	EXPECT_EQ(firewall.check_packet(packet0), true);
+		rule += "deny from ";
+		rule += decimal_to_ip(packet1.get_in_address());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
 
-	string rule;
-	rule += "allow ";
-	rule += to_string(packet1.get_in_port());
-	firewall.add_rule(rule);
-	rule.clear();
+		rule += "allow from ";
+		rule += decimal_to_ip(packet2.get_in_address());
+		rule += " to any port ";
+		rule += to_string(packet2.get_in_port());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
 
-	rule += "deny ";
-	rule += to_string(packet2.get_in_port());
-	firewall.add_rule(rule);
+		rule += "deny from ";
+		rule += decimal_to_ip(packet3.get_in_address());
+		rule += " to any port ";
+		rule += to_string(packet3.get_in_port());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
 
-	EXPECT_EQ(firewall.check_packet(packet1), true);
-	EXPECT_EQ(firewall.check_packet(packet2), false);
+		rule += "allow from ";
+		rule += decimal_to_ip(packet4.get_in_address());
+		rule += " to any port ";
+		rule += to_string(packet4.get_in_port());
+		rule += " proto ";
+		rule += protocol_table_str.at(packet4.get_protocol());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
+
+		rule += "deny from ";
+		rule += decimal_to_ip(packet4.get_in_address());
+		rule += " to any port ";
+		rule += to_string(packet4.get_in_port());
+		rule += " proto ";
+		rule += protocol_table_str.at(packet4.get_protocol());
+		firewall.add_rule(fabric_rule::create_rule(rule));
+		rule.clear();
+
+		EXPECT_EQ(firewall.check_packet(packet0), true);
+		EXPECT_EQ(firewall.check_packet(packet1), false);
+		EXPECT_EQ(firewall.check_packet(packet2), true);
+		EXPECT_EQ(firewall.check_packet(packet3), false);
+		EXPECT_EQ(firewall.check_packet(packet4), true);
+		EXPECT_EQ(firewall.check_packet(packet5), false);
+
+		firewall.clear();
+		firewall.set_default_mode(true);
+		EXPECT_EQ(firewall.check_packet(packet0), true);
+		EXPECT_EQ(firewall.check_packet(packet1), true);
+		EXPECT_EQ(firewall.check_packet(packet2), true);
+		EXPECT_EQ(firewall.check_packet(packet3), true);
+		EXPECT_EQ(firewall.check_packet(packet4), true);
+		EXPECT_EQ(firewall.check_packet(packet5), true);
+		firewall.set_default_mode(false);
+		EXPECT_EQ(firewall.check_packet(packet0), false);
+		EXPECT_EQ(firewall.check_packet(packet1), false);
+		EXPECT_EQ(firewall.check_packet(packet2), false);
+		EXPECT_EQ(firewall.check_packet(packet3), false);
+		EXPECT_EQ(firewall.check_packet(packet4), false);
+		EXPECT_EQ(firewall.check_packet(packet5), false);
+	}
 }

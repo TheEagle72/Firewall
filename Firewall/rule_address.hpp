@@ -8,8 +8,8 @@ private:
 	uint32_t address_;
 	uint8_t mask_;
 public:
-	rule_address(bool, uint32_t, uint8_t);
-	bool check_packet(const Packet&, bool&) override;
+	rule_address(const bool permission, const bool in_direction, uint32_t address, uint8_t mask);
+	bool check_packet(const Packet& packet, bool& permission) override;
 };
 
 

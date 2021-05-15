@@ -94,6 +94,7 @@ bool parse_permission(const string& str)
 		else
 		{
 			wrong_format_error();
+			return false;
 		}
 }
 
@@ -116,10 +117,11 @@ uint8_t parse_protocol(const string& str)
 	else
 	{
 		wrong_format_error();
+		return 0;
 	}
 }
 
-void parse_port(const string& str, uint16_t& port_number, uint8_t& protocol)
+tuple<uint16_t, uint8_t> parse_port(const string& str)
 {
 	auto it = find(str.begin(), str.end(), '/');
 
@@ -128,46 +130,62 @@ void parse_port(const string& str, uint16_t& port_number, uint8_t& protocol)
 		//if no protocol is specified
 		if (is_number(str))
 		{
-			port_number = stoull(str);
-			protocol = 0;
+			return make_tuple(stoull(str), 0);
 		}
 	}
 	else
 	{
-		string port(str.begin(), it);
+		const string port(str.begin(), it);
+		const string protocol(++it, str.end());
+
 		if (is_number(port))
 		{
-			port_number = stoull(str);
+			return make_tuple(stoull(port), parse_protocol(protocol));
 		}
-		string proto = string(++it, str.end());
-		protocol = parse_protocol(proto);
+		else
+		{
+			wrong_format_error();
+			return { 0,0 };
+		}
 	}
 }
 
-void parse_address(const string& str, uint32_t& address, uint8_t& mask)
+tuple<uint32_t, uint8_t>  parse_address(const string& str)
 {
 	auto it = find(str.begin(), str.end(), '/');
 
 	string address_ip(str.begin(), it);
+
+	if (address_ip == "any")
+	{
+		return { 0,0 };
+	}
 	if (is_valid_ip(address_ip))
 	{
-		address = ip_to_decimal(str);
+		uint32_t address = ip_to_decimal(str);
 		if (it != str.end())
 		{
 			string address_mask(++it, str.end());
 			if (is_number(address_mask))
 			{
-				mask = stoull(address_mask);// todo correct conversion
+				uint8_t mask = stoull(address_mask);// todo correct conversion
+				return { address,mask };
 			}
 			else
 			{
 				wrong_format_error();
+				return { 0,0 };
 			}
+		}
+		else
+		{
+			return { address,32 };
 		}
 	}
 	else
 	{
 		wrong_format_error();
+		return { 0,0 };
 	}
 }
 

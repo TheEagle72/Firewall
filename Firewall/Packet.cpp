@@ -9,7 +9,9 @@ Packet::Packet(string& str)
 
 	for (auto arg : args)
 	{
-		if (!is_number(arg))
+		auto it = arg.begin();
+		while (it != arg.end() && isdigit(*it)) ++it;
+		if (!(!arg.empty() && it == arg.end()))
 		{
 			wrong_format_error();
 			//todo handle incorrect packets without stopping program

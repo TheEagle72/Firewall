@@ -3,6 +3,7 @@
 
 #include "Firewall.hpp"
 #include "Packet.hpp"
+#include "fabric_rule.hpp"
 using namespace std;
 
 int main(int argc, char** argv)
@@ -29,11 +30,10 @@ int main(int argc, char** argv)
 	}
 
 	Firewall firewall;
-
 	string str;
 	while (getline(file_rules, str))
 	{
-		firewall.add_rule(str);
+		firewall.add_rule(move(fabric_rule::create_rule(str)));
 	}
 
 	while (getline(file_packets, str))
