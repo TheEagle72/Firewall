@@ -16,7 +16,7 @@ uint32_t ip_to_decimal(const string& str)
 		it2 = find(it1, str.end(), '.');
 
 		string number(it1, it2);
-		result += (stoull(number) << shift);
+		result += (stoul(number) << shift);
 
 		if (it2 != str.end())
 		{
@@ -131,6 +131,11 @@ tuple<uint16_t, uint8_t> parse_port(const string& str)
 		if (is_number(str))
 		{
 			return make_tuple(stoull(str), 0);
+		}
+		else
+		{
+			wrong_format_error();
+			return { 0,0 };
 		}
 	}
 	else
