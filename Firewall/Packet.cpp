@@ -3,9 +3,15 @@
 
 using namespace std;
 
-Packet::Packet(string& str)
+
+Packet::Packet(const string& str)
 {
 	vector<string> args = parse_string(str);
+
+	if (args.size() != 5)
+	{
+		throw packet_wrong_format_exception();
+	}
 
 	for (auto arg : args)
 	{
@@ -13,12 +19,10 @@ Packet::Packet(string& str)
 		while (it != arg.end() && isdigit(*it)) ++it;
 		if (!(!arg.empty() && it == arg.end()))
 		{
-			wrong_format_error();
-			//todo handle incorrect packets without stopping program
+			throw packet_wrong_format_exception();
 		}
 	}
 
-	//todo choose correct conversion
 	protocol = stoull(args[0]);
 	in_address = stoull(args[1]);
 	out_address = stoull(args[2]);

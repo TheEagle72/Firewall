@@ -1,12 +1,12 @@
 #pragma once
 
-#include "base_rule.hpp"
+#include "rule_base.hpp"
 
-class rule_port final :public base_rule
+class rule_port final :public rule_base
 {
 private:
 	uint16_t port_;
 public:
-	rule_port(bool permission, bool in_direction, uint16_t port);
-	bool check_packet(const Packet& packet, bool& permission) override;
+	rule_port(Permission permission, Direction direction, uint16_t port);
+	bool check_packet(const Packet& packet, Permission& permission) override;
 };

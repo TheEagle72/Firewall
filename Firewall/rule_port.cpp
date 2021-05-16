@@ -1,17 +1,17 @@
 #include "rule_port.hpp"
 
 
-rule_port::rule_port(bool permission, bool in_direction, uint16_t port)
+rule_port::rule_port(const Permission permission, const Direction direction, const uint16_t port)
 {
 	permission_ = permission;
 	port_ = port;
-	in_direction_ = in_direction;
+	direction_ = direction;
 }
 
-bool rule_port::check_packet(const Packet& packet, bool& permission)
+bool rule_port::check_packet(const Packet& packet, Permission& permission)
 {
 	uint16_t port;
-	if (in_direction_)
+	if (direction_ == Direction::incoming)
 	{
 		port = packet.get_in_port();
 	}
@@ -25,8 +25,5 @@ bool rule_port::check_packet(const Packet& packet, bool& permission)
 		permission = permission_;
 		return true;
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }

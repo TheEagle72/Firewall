@@ -157,11 +157,11 @@ TEST(Firewall, address)
 		rule.clear();
 
 		rule += "deny from ";
-		rule += decimal_to_ip(packet4.get_in_address());
+		rule += decimal_to_ip(packet5.get_in_address());
 		rule += " to any port ";
-		rule += to_string(packet4.get_in_port());
+		rule += to_string(packet5.get_in_port());
 		rule += " proto ";
-		rule += protocol_table_str.at(packet4.get_protocol());
+		rule += protocol_table_str.at(packet5.get_protocol());
 		firewall.add_rule(fabric_rule::create_rule(rule));
 		rule.clear();
 
@@ -173,14 +173,14 @@ TEST(Firewall, address)
 		EXPECT_EQ(firewall.check_packet(packet5), false);
 
 		firewall.clear();
-		firewall.set_default_mode(true);
+		firewall.set_default_permission(Permission::allow);
 		EXPECT_EQ(firewall.check_packet(packet0), true);
 		EXPECT_EQ(firewall.check_packet(packet1), true);
 		EXPECT_EQ(firewall.check_packet(packet2), true);
 		EXPECT_EQ(firewall.check_packet(packet3), true);
 		EXPECT_EQ(firewall.check_packet(packet4), true);
 		EXPECT_EQ(firewall.check_packet(packet5), true);
-		firewall.set_default_mode(false);
+		firewall.set_default_permission(Permission::deny);
 		EXPECT_EQ(firewall.check_packet(packet0), false);
 		EXPECT_EQ(firewall.check_packet(packet1), false);
 		EXPECT_EQ(firewall.check_packet(packet2), false);

@@ -2,11 +2,12 @@
 
 #include <memory>
 #include <string>
-#include "base_rule.hpp"
+#include "rule_base.hpp"
 
-class fabric_rule
+class fabric_rule final
 {
+	fabric_rule() = delete;
 public:
-	static std::unique_ptr<base_rule> create_rule(const std::string& str);
+	static std::unique_ptr<rule_base> create_rule(const std::string& str);
 };
 

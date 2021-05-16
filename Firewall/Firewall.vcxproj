@@ -157,9 +157,9 @@
   <ItemGroup>
     <ClInclude Include="Firewall.hpp" />
     <ClInclude Include="Packet.hpp" />
-    <ClInclude Include="base_rule.hpp" />
+    <ClInclude Include="rule_base.hpp" />
     <ClInclude Include="Parser.hpp" />
-    <ClInclude Include="compound_rule.hpp" />
+    <ClInclude Include="rule_compound.hpp" />
     <ClInclude Include="rule_address.hpp" />
     <ClInclude Include="fabric_rule.hpp" />
     <ClInclude Include="rule_port.hpp" />
@@ -169,7 +169,7 @@
     <ClCompile Include="Firewall.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="Parser.cpp" />
-    <ClCompile Include="compound_rule.cpp" />
+    <ClCompile Include="rule_compound.cpp" />
     <ClCompile Include="rule_address.cpp" />
     <ClCompile Include="fabric_rule.cpp" />
     <ClCompile Include="rule_port.cpp" />

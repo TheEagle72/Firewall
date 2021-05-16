@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 		file_packets = ifstream(argv[2]);
 		if (!file_rules || !file_packets)
 		{
-			cerr << "Error";
+			cerr << "error occurred during file opening" << endl;
 			exit(0);
 		}
 	}
@@ -33,13 +33,28 @@ int main(int argc, char** argv)
 	string str;
 	while (getline(file_rules, str))
 	{
-		firewall.add_rule(move(fabric_rule::create_rule(str)));
+		try
+		{
+			firewall.add_rule(move(fabric_rule::create_rule(str)));
+		}
+		catch (exception &e)
+		{
+			cerr << e.what() << endl;
+		}
 	}
 
 	while (getline(file_packets, str))
 	{
-		Packet packet(str);
-		file_output << str << " - " << (firewall.check_packet(packet) ? "ALLOWED" : "DENIED") << endl;
+		try
+		{
+			Packet packet(str);
+			file_output << str << " - " << (firewall.check_packet(packet) ? "ALLOWED" : "DENIED") << endl;
+		}
+		catch (exception &e)
+		{
+			cerr << e.what() << endl;
+			file_output << str << " - WRONG FORMAT" << endl;
+		}
 	}
 
 	return 0;

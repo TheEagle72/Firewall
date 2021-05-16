@@ -2,37 +2,45 @@
 
 using namespace std;
 
-unsigned Firewall::add_rule(unique_ptr<base_rule> rule)
+size_t Firewall::add_rule(unique_ptr<rule_base> rule)
 {
+	if (rule == nullptr)
+	{
+		throw firewall_nullptr_exception();
+	}
 	rules.emplace_back(move(rule));
 	return rules.size() - 1;
 }
 
-void Firewall::delete_rule(int index)
+void Firewall::delete_rule(const size_t index)
 {
 	rules.erase(rules.begin() + index);
 }
 
 void Firewall::clear()
 {
-	rules.clear();	//todo possible memory leak, is smart pointers deleting themselves, when only reference to the object is lost?
+	rules.clear();
 }
 
-void Firewall::set_default_mode(bool allow)
+void Firewall::set_default_permission(const Permission permission)
 {
-	default_mode = allow;
+	default_permission = permission;
 }
 
-bool Firewall::check_packet(const Packet& packet)
+bool Firewall::check_packet(const Packet& packet) const
 {
-	bool permission = default_mode;
+	Permission permission = default_permission;
 	for (auto& rule : rules)
 	{
-		if (rule->check_packet(packet, permission))// if we found rule which should handle this packet then return its permission state
+		if (rule->check_packet(packet, permission))// if we found rule which should handle this packet then return its Permission state
 		{
 			break;
 		}
 	}
-	// if no rules were found then return default state	
-	return permission;
+	// if no rules were found then return default state
+	if (permission == Permission::allow)
+	{
+		return true;
+	}
+	return false;
 }

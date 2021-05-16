@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <unordered_map>
-#include "base_rule.hpp"
+#include "rule_base.hpp"
 
 using namespace std;
 
@@ -54,7 +54,7 @@ bool is_valid_ip(const string& str)
 	{
 		it2 = find(it1, str.end(), '.');
 
-		string number = string(it1, it2);
+		string number(it1, it2);
 		if (!is_number(number) || stoull(number) > 255)
 		{
 			return false;
@@ -74,28 +74,18 @@ bool is_valid_ip(const string& str)
 	}
 	return true;
 }
-void wrong_format_error()
-{
-	std::cerr << "wrong format of rule. Usage: 'allow/deny from <target> to <destination> port <port number>' or 'allow/deny <port>/<optional: protocol>'";
-	exit(1);
-}
 
-bool parse_permission(const string& str)
+Permission parse_permission(const string& str)
 {
 	if (str == "allow")
 	{
-		return  true;
+		return  Permission::allow;
 	}
-	else
-		if (str == "deny")
-		{
-			return false;
-		}
-		else
-		{
-			wrong_format_error();
-			return false;
-		}
+	if (str == "deny")
+	{
+		return Permission::deny;
+	}
+	throw parser_wrong_format_exception();
 }
 
 namespace
@@ -114,11 +104,7 @@ uint8_t parse_protocol(const string& str)
 	{
 		return protocol_table.at(str);
 	}
-	else
-	{
-		wrong_format_error();
-		return 0;
-	}
+	throw parser_wrong_format_exception();
 }
 
 tuple<uint16_t, uint8_t> parse_port(const string& str)
@@ -130,29 +116,19 @@ tuple<uint16_t, uint8_t> parse_port(const string& str)
 		//if no protocol is specified
 		if (is_number(str))
 		{
-			return make_tuple(stoull(str), 0);
+			return { stoull(str), 0 };
 		}
-		else
-		{
-			wrong_format_error();
-			return { 0,0 };
-		}
+		throw parser_wrong_format_exception();
 	}
-	else
-	{
-		const string port(str.begin(), it);
-		const string protocol(++it, str.end());
 
-		if (is_number(port))
-		{
-			return make_tuple(stoull(port), parse_protocol(protocol));
-		}
-		else
-		{
-			wrong_format_error();
-			return { 0,0 };
-		}
+	const string port(str.begin(), it);
+	const string protocol(++it, str.end());
+
+	if (is_number(port))
+	{
+		return { stoull(port), parse_protocol(protocol) };
 	}
+	throw parser_wrong_format_exception();
 }
 
 tuple<uint32_t, uint8_t>  parse_address(const string& str)
@@ -176,22 +152,11 @@ tuple<uint32_t, uint8_t>  parse_address(const string& str)
 				uint8_t mask = stoull(address_mask);// todo correct conversion
 				return { address,mask };
 			}
-			else
-			{
-				wrong_format_error();
-				return { 0,0 };
-			}
+			throw parser_wrong_format_exception();
 		}
-		else
-		{
-			return { address,32 };
-		}
+		return { address,32 };
 	}
-	else
-	{
-		wrong_format_error();
-		return { 0,0 };
-	}
+	throw parser_wrong_format_exception();
 }
 
 vector<string> parse_string(const string& str, char separator)

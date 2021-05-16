@@ -18,7 +18,7 @@
     <ClInclude Include="Firewall.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="base_rule.hpp">
+    <ClInclude Include="rule_base.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Parser.hpp">
@@ -27,7 +27,7 @@
     <ClInclude Include="Packet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="compound_rule.hpp">
+    <ClInclude Include="rule_compound.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rule_protocol.hpp">
@@ -53,7 +53,7 @@
     <ClCompile Include="Packet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="compound_rule.cpp">
+    <ClCompile Include="rule_compound.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="rule_protocol.cpp">
